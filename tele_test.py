@@ -2,6 +2,10 @@
 
 import soqcs
 
+'''
+The following simulation demonstrates quantum teleportation of a quantum state
+from channel 0 to channel 2. 
+'''
 # maybe consider using add_Bell function
 sim = soqcs.simulator()
 # initialising a quantum optical device
@@ -17,7 +21,9 @@ test = soqcs.qodev(nph=4, nch=3, nm=2,
     np=3, dtp=100.0, ns=4,
     clock=4, ckind='E')
 
-# adding photons via quantum dot
+'''
+Adding to channel 2, 
+'''
 test.add_QD(2, 1, t1= 0.0, f1=10000.0, w1=1.0,
     t2= 6.9, f2=10000.0, w2=1.0)
 test.add_QD(2, 0, t1=101.0, f1=10000.0, w1=1.0,
