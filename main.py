@@ -1,53 +1,116 @@
-#!/usr/bin/python3
+
 
 import soqcs, sys
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import HGate, MCXGate
+from math import pi
+from qiskit.quantum_info import Statevector
+ 
+def qisKitTest():
+    qc = QuantumCircuit(1)
+    qc.measure_all()
+    qc.remove_final_measurements()  
+    psi = Statevector(qc)
+    print("Before:")
+    print(psi.to_dict())    
+    #qc.rx(pi, 0)
+    qc.x(0)
 
-def rotationX(state, theta):
-    # 0 -> rotate around x-axis
+    #print(qc)
+    qc.measure_all()
+    qc.remove_final_measurements()  
+    psi = Statevector(qc)
+    print("After:")
+    print(psi.to_dict())  
+
+def rZ(state, theta): 
+    return 0
+
+def pauliX(state):
     simulator = soqcs.simulator()
-    rX = state
-    rX.beamsplitter(0, 1, 45.0, theta)
-    
-    rX.detector(0)
-    rX.detector(1)
-    
-    rX.show(depth=7,sizexy=70)
-    qmap = [[0], [1]]
-    outcome = simulator.run_st(rX.input(), rX.circuit())
-    qubit = outcome.encode(qmap, rX.circuit())
-    qubit.prnt_state()
-    
+    pX = state
+    pX.separator()
 
-def hadamardGate(state):
-    
-    # 50:50 beam splitter
-    simulator = soqcs.simulator()
-    test = state
-    # consists of a 90 degree rotation about the y-axis
-    # then a 180 degree rotation about the x-axis
-    test.beamsplitter(0, 1, 45.0, 0)  
-    # phase shift by 180
-    test.beamsplitter(1, 1, 0.0, 180.0)
-
-    test.detector(0)
-    test.detector(1)
-    #test.show(depth=7,sizexy=70)
-    #test.show()
     qmap = [[0], [1]]
-    outcome = simulator.run_st(test.input(), test.circuit())
-    qubit = outcome.encode(qmap, test.circuit())
+    outcome = simulator.run_st(pX.input(), pX.circuit())
+    qubit = outcome.encode(qmap, pX.circuit())
+    
+    print("Before:")
     qubit.prnt_state(column=1)
     
 
+    pX.beamsplitter(0, 1, 270.0, 0)  
+    pX.detector(0)
+    pX.detector(1)
+    # pX.show(depth=7, sizexy=70)
+    qmap = [[0], [1]]
+    outcome = simulator.run_st(pX.input(), pX.circuit())
+    qubit = outcome.encode(qmap, pX.circuit())
+    
+    print("After:")
+    qubit.prnt_state(column=1)
+    return 0
+
+def rX(state, theta):
+    simulator = soqcs.simulator()
+    rX = state
+    rX.separator()
+
+    qmap = [[0], [1]]
+    outcome = simulator.run_st(rX.input(), rX.circuit())
+    qubit = outcome.encode(qmap, rX.circuit())
+    
+    print("Before:")
+    qubit.prnt_state(column=1)
+    
+
+    rX.beamsplitter(0, 1, theta / 2, 90.0)  
+    rX.detector(0)
+    rX.detector(1)
+    # rX.show(depth=7, sizexy=70)
+    qmap = [[0], [1]]
+    outcome = simulator.run_st(rX.input(), rX.circuit())
+    qubit = outcome.encode(qmap, rX.circuit())
+    
+    print("After:")
+    qubit.prnt_state(column=1)
+    return 0
+def rY(state, theta):
+    simulator = soqcs.simulator()
+    rY = state
+    rY.separator()
+
+    qmap = [[0], [1]]
+    outcome = simulator.run_st(rY.input(), rY.circuit())
+    qubit = outcome.encode(qmap, rY.circuit())
+    qubit.prnt_state(column=1)
+    
+    rY.beamsplitter(0, 1, theta / 2, 0)  
+    rY.detector(0)
+    rY.detector(1)
+    # rY.show(depth=7, sizexy=70)
+    qmap = [[0], [1]]
+    outcome = simulator.run_st(rY.input(), rY.circuit())
+    qubit = outcome.encode(qmap, rY.circuit())
+    
+    print("After:")
+    qubit.prnt_state(column=1)
+    
 
 def main():
-    # Maximum number of photons = 2 (parameter 1)
-    # Creates two channels (parameter 2)
-    initState = soqcs.qodev(2,2)
-    initState.add_photons(0, 0) # adds a 0 state to channel 0
-    initState.add_photons(1, 1) # adds a 1 state to channel 1
-    rotationX(initState, 90)
-    hadamardGate(initState)
+
+    test = soqcs.qodev(2,2)
+    test.add_photons(0, 1) # adds a 0 state to channel 0
+    test.add_photons(1, 0) # adds a 0 state to channel 0
+    
+    #rY(test, 270)
+    #rX(test, 180)
+    #rX(test, 180)
+    pauliX(test)
+    qisKitTest()
+    
+ 
+    
 
 if __name__=="__main__":
     main()
