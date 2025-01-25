@@ -1,114 +1,162 @@
 
 
 import soqcs, sys
+from math import sqrt, acos, pi
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import HGate, MCXGate
-from math import pi
 from qiskit.quantum_info import Statevector
+
  
-def qisKitTest():
+def qisKitRotationTest(angle, rotation, state):
+    angle = (pi * angle) / 180
     qc = QuantumCircuit(1)
     qc.measure_all()
     qc.remove_final_measurements()  
     psi = Statevector(qc)
     print("Before:")
-    print(psi.to_dict())    
-    #qc.rx(pi, 0)
-    qc.x(0)
-
-    #print(qc)
+    print(psi.to_dict())  
+    if rotation == 'x':
+        qc.rx(angle, state)
+    elif rotation == 'y':
+        qc.ry(angle, state)
+    elif rotation == 'z':
+        qc.rz(angle, state)
+    else:
+        print("Incorrect usage: Choose 'x', 'y' or 'z'")
+        sys.exit(1)
     qc.measure_all()
     qc.remove_final_measurements()  
     psi = Statevector(qc)
     print("After:")
     print(psi.to_dict())  
 
-def rZ(state, theta): 
-    return 0
+'''
+Representing a 50:50 beam splitter
+'''
+def hadamardGate(ch1, ch2, state):
+    return state.beamsplitter(ch1, ch2, 45.0, 0)
 
-def pauliX(state):
+def pauliGate(state, rotation):
     simulator = soqcs.simulator()
-    pX = state
-    pX.separator()
+    state.separator()
 
     qmap = [[0], [1]]
-    outcome = simulator.run_st(pX.input(), pX.circuit())
-    qubit = outcome.encode(qmap, pX.circuit())
+    outcome = simulator.run_st(state.input(), state.circuit())
+    qubit = outcome.encode(qmap, state.circuit())
     
     print("Before:")
     qubit.prnt_state(column=1)
     
-
-    pX.beamsplitter(0, 1, 270.0, 0)  
-    pX.detector(0)
-    pX.detector(1)
-    # pX.show(depth=7, sizexy=70)
+    if rotation == 'x':
+        state.beamsplitter(0, 1, 270.0, 0)  
+    elif rotation == 'y':
+        state.beamsplitter(0, 1, 90.0, 90.0)  
+    elif rotation == 'z':
+        state.phase_shifter(0, 180.0)  
+    else:
+        print("Incorrect usage: Choose 'x', 'y' or 'z'")
+        sys.exit(1)
+    state.detector(0)
+    state.detector(1)
+        
+    # state.show(depth=7, sizexy=70)
     qmap = [[0], [1]]
-    outcome = simulator.run_st(pX.input(), pX.circuit())
-    qubit = outcome.encode(qmap, pX.circuit())
+    outcome = simulator.run_st(state.input(), state.circuit())
+    qubit = outcome.encode(qmap, state.circuit())
     
     print("After:")
     qubit.prnt_state(column=1)
-    return 0
-
-def rX(state, theta):
+def rotationTransformation(state, theta, rotation):
     simulator = soqcs.simulator()
-    rX = state
-    rX.separator()
+    state.separator()
 
     qmap = [[0], [1]]
-    outcome = simulator.run_st(rX.input(), rX.circuit())
-    qubit = outcome.encode(qmap, rX.circuit())
+    outcome = simulator.run_st(state.input(), state.circuit())
+    qubit = outcome.encode(qmap, state.circuit())
     
     print("Before:")
     qubit.prnt_state(column=1)
     
-
-    rX.beamsplitter(0, 1, theta / 2, 90.0)  
-    rX.detector(0)
-    rX.detector(1)
-    # rX.show(depth=7, sizexy=70)
+    if rotation == 'x':
+        state.beamsplitter(0, 1, theta / 2, 90.0)  
+    elif rotation == 'y':
+        state.beamsplitter(0, 1, theta / 2, 0)  
+    elif rotation == 'z':
+        # apply <0, 1> | <1, 0> matrix
+        # apply 
+        state.phase_shifter(0, theta / 2)  
+        state.phase_shifter(1, -theta / 2)
+    else:
+        print("Incorrect usage: Choose 'x', 'y' or 'z'")
+        sys.exit(1)
+    state.detector(0)
+    state.detector(1)
+    # state.show(depth=7, sizexy=70)
     qmap = [[0], [1]]
-    outcome = simulator.run_st(rX.input(), rX.circuit())
-    qubit = outcome.encode(qmap, rX.circuit())
+    outcome = simulator.run_st(state.input(), state.circuit())
+    qubit = outcome.encode(qmap, state.circuit())
     
     print("After:")
     qubit.prnt_state(column=1)
-    return 0
-def rY(state, theta):
+
+
+def entanglementGenerator():
     simulator = soqcs.simulator()
-    rY = state
-    rY.separator()
-
+    
+    test = soqcs.qodev(6,6)
+    test.add_photons(1, 0) 
+    test.add_photons(0, 1) 
+    test.add_photons(1, 2) 
+    test.add_photons(0, 3) 
+    test.add_photons(1, 4) 
+    test.add_photons(1, 5) 
+    
+    test.separator()
+    
+    test.beamsplitter(0, 1, 45.0, 0)
+    test.beamsplitter(2, 3, 45.0, 0)
+    test.beamsplitter(4, 5, 45.0, 0)
+    
+    test.separator()
+    
+    test.beamsplitter(0, 5, acos(sqrt(2)/sqrt(3)) * (180 / pi), 0)
+    test.beamsplitter(2, 4, acos(sqrt(2)/sqrt(3)) * (180 / pi), 0)
+    
+    test.separator()
+    
+    test.phase_shifter(4, 180.0)
+    
+    test.separator()
+    
+    test.detector(0)
+    test.detector(2)
+    
+    test.show(sizexy=50,depth=16)
+    
     qmap = [[0], [1]]
-    outcome = simulator.run_st(rY.input(), rY.circuit())
-    qubit = outcome.encode(qmap, rY.circuit())
+    outcome = simulator.run_st(test.input(), test.circuit())
+    qubit = outcome.encode(qmap, test.circuit())
     qubit.prnt_state(column=1)
-    
-    rY.beamsplitter(0, 1, theta / 2, 0)  
-    rY.detector(0)
-    rY.detector(1)
-    # rY.show(depth=7, sizexy=70)
-    qmap = [[0], [1]]
-    outcome = simulator.run_st(rY.input(), rY.circuit())
-    qubit = outcome.encode(qmap, rY.circuit())
-    
-    print("After:")
-    qubit.prnt_state(column=1)
-    
-
+ 
 def main():
-
+    
     test = soqcs.qodev(2,2)
-    test.add_photons(0, 1) # adds a 0 state to channel 0
-    test.add_photons(1, 0) # adds a 0 state to channel 0
+    
+    # |01>
+    test.add_photons(0, 0) 
+    test.add_photons(1, 1) 
+    
+    angle = 45
+    rotationType = 'z'
+    
+    rotationTransformation(test, angle, rotationType)
+    qisKitRotationTest(angle, rotationType, 0)
     
     #rY(test, 270)
     #rX(test, 180)
     #rX(test, 180)
-    pauliX(test)
-    qisKitTest()
-    
+    #pauliX(test)
+    #qisKitTest()
+
  
     
 
