@@ -46,7 +46,47 @@ def cNot():
     qubit = outcome.encode(qmap, cnot.circuit())
     
     qubit.prnt_state(column=1)
+def bellMeasurement(state):
     
+    # Consider decoding state into dual-rail encoding
+    simulator = soqcs.simulator()
+
+    qmap=[[0, 2],
+          [1, 3]]
+    
+    bellMeasurement = soqcs.qodev(4,4)
+    
+    bellMeasurement.empty_channel(0)
+    bellMeasurement.empty_channel(1)
+    bellMeasurement.empty_channel(2)
+    bellMeasurement.empty_channel(3)
+
+    bellMeasurement.separator()
+    
+    bellMeasurement.beamsplitter(0, 3, 45.0, 0)
+    bellMeasurement.beamsplitter(1, 4, 45.0, 0)
+    
+    bellMeasurement.separator()
+  
+    bellMeasurement.detector(0)
+    bellMeasurement.detector(1)
+    bellMeasurement.detector(2)
+    bellMeasurement.detector(3)
+  
+  
+    outcome=simulator.run(bellMeasurement)                 
+    encoded=outcome.translate(qmap, bellMeasurement)  
+    encoded.show(sizex=5,dpi=70)             
+    
+    outcome = simulator.run_st(bellMeasurement.input(), bellMeasurement.circuit())
+    bellMeasurement.input().prnt_state(column=1)
+    outcome.prnt_state(column=1)
+    qubit = outcome.encode(qmap, bellMeasurement.circuit())
+    
+    outcome=simulator.run(bellMeasurement)
+
+    qubit.prnt_state(column=1)
+    return 0   
 '''
 Using: https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.3.043031.
 
@@ -94,8 +134,10 @@ def entanglementGenV2():
 '''
 Using: https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.3.043031.
 
-An entanglement generator replicating Figure 1a, with a 2/27 probability of generating an entangled state.
+An entanglement generator replicating Figure 1a, with a 2/27 probability of generating an entangled state. 
 '''
+
+# NOTE: Move channels around but have an equivalent circuit (same qubit encoding => output)
 def entanglementGenV1():
     
     simulator = soqcs.simulator()
@@ -137,9 +179,8 @@ def entanglementGenV1():
     outcome.prnt_state(column=1)
 
     qmap = [
-    [1, 4], 
-    [3, 5],  
-    ]
+    [1, 5], 
+    [3, 4]]
 
     qubit = outcome.encode(qmap, entangle_v1.circuit())
 
@@ -147,8 +188,8 @@ def entanglementGenV1():
     outcome = simulator.run(entangle_v1)
     qubit.prnt_state(column=1)
 def main():
-    entanglementGenV1()
-    #entanglementGenV2()
+    #entanglementGenV1()
+    entanglementGenV2()
  
 
 if __name__=="__main__":
