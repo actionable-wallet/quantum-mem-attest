@@ -5,6 +5,8 @@ from pauli import pauliGate, qisKitPauliTest
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Statevector
 
+SEPERATOR = "==============================================================================="
+
 def getState():
     #sim = soqcs.simulator()
     state = soqcs.qodev(2,2)
@@ -36,12 +38,14 @@ def teleport():
     #teleportedState = getState()
     
     # We want to transfer the state (1, 0)
-    teleporationCircuit.add_photons(1, 0)
-    teleporationCircuit.add_photons(0, 1)
+    teleporationCircuit.add_photons(0, 0)
+    teleporationCircuit.add_photons(1, 1)
     teleporationCircuit.beamsplitter(0, 1, 45.0, 0)
+    
     #teleporationCircuit.add_gate([0, 1], getHadamardGate(), 'H')
     
     teleporationCircuit.add_photons(1, 2)
+    
     teleporationCircuit.add_photons(1, 3)
     teleporationCircuit.add_photons(1, 4)
     teleporationCircuit.add_photons(0, 5)
@@ -60,22 +64,28 @@ def teleport():
     # cNotGate = cNot()
     # teleporationCircuit.add_gate(chlist, cNotGate, "cnot")
     bellMeasurement = getMeasureGate()
-    chlist = [0, 1, 3, 4]
+    
+    # Measure the two qubits from Alice
+    chlist = [0, 1, 3, 6]
+    
     teleporationCircuit.add_gate(chlist, bellMeasurement, "measure")
+    # Alice wants to teleport (0, 1)
     # Alice has (3, 5)
     # Bob has (4, 6)
     qmap = [[0, 3, 5], [1, 4, 6]]
     # qmap=[[4, 5],
     #       [6, 7]]
+    pauliX = pauliGate('x')
+    
+    teleporationCircuit.add_gate([5, 6], pauliX, 'X')
+    
     outcome = simulator.run_st(teleporationCircuit.input(), teleporationCircuit.circuit())
     teleporationCircuit.input().prnt_state(column=1)
     outcome.prnt_state(column=1)
     
     outcome = simulator.run_st(teleporationCircuit.input(), teleporationCircuit.circuit())
     aliceQubit = outcome.encode(qmap, teleporationCircuit.circuit())
-    aliceQubit.prnt_state(column=1)
-   
-    
+    aliceQubit.prnt_state(column=1)    
 '''
 Function which returns a 50:50 beam splitter
 '''   
@@ -117,14 +127,12 @@ def getMeasureGate():
 
     # qmap=[[1, 2],
     #      [3, 4]]
-    qmap= [[0, 2],
-           [1, 3]]
+    
+    # sim=soqcs.simulator()
+    # qmap=[[0, 2],
+    #        [1, 3]]
     
     bellMeasurement = soqcs.qodev(4,4)
-    bellMeasurement.empty_channel(0)
-    bellMeasurement.empty_channel(1)
-    bellMeasurement.empty_channel(2)
-    bellMeasurement.empty_channel(3)
     # bellMeasurement = state
 
     bellMeasurement.separator()
@@ -138,6 +146,13 @@ def getMeasureGate():
     bellMeasurement.detector(1)
     bellMeasurement.detector(2)
     bellMeasurement.detector(3)
+    
+    
+    # outcome = sim.run_st(bellMeasurement.input(), bellMeasurement.circuit())
+    # measurement = outcome.encode(qmap, bellMeasurement.circuit())
+    # measurement.prnt_state(column=1)
+    
+    # print(SEPERATOR)
     
     return bellMeasurement
     
