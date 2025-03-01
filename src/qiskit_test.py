@@ -13,7 +13,7 @@ def qisKitExampleTele():
     
 
     protocol = QuantumCircuit(qubit, ebit0, ebit1, a, b)
-    protocol.h(qubit)
+    #protocol.h(qubit)
     random_gate = UGate(
     theta=random.random() * 2 * pi,
     phi=random.random() * 2 * pi,
@@ -48,6 +48,7 @@ def qisKitExampleTele():
     
     result = AerSimulator().run(protocol).result()
     statistics = result.get_counts()
+    print(statistics)
     filtered_statistics = marginal_distribution(statistics, [2])
     print(filtered_statistics)
 

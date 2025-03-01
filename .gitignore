@@ -1,0 +1,6 @@
+quantum-attest
+__pycache__/
+*.md
+meetings/
+entanglement/
+temp.py
