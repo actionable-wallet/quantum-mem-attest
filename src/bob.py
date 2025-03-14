@@ -9,7 +9,7 @@ parsed = output.stdout.decode('utf-8').strip().split("\x1b[36m")
 amplitudeIndex = 7
 
 # Usually make this 6 in order to account for 1/3 * 1/2 (entanglement generator AND measurement)
-normalisationFactor = 6
+normalisationFactor = 6 * sqrt(2)
 
 
 zRotation = [[1, 0, 1, 0], [0, 1, 0, 1]]
@@ -33,14 +33,13 @@ def bob():
     circuitState = parseOutput(output)
     rawOutputs = []
     measuredQubits = []
-    teleportedQubits = []
     aliceQubits = []
     bobQubits = []
     
     zIndices = []
     iIndices = []
     for i, outputStrings in enumerate(circuitState):
-        if i == 1:
+        if i == 1 or i == 2:
             print(outputStrings)
         if i < 2:
             continue
@@ -54,7 +53,7 @@ def bob():
             if channel == amplitudeIndex or "=" in photons:
                 continue
             numPhotons = int(photons.strip())
-            
+            # Filtering out each rail into their respective qubit encodings
             if channel == 0 or channel == 1:
                 teleportedQubit.append(numPhotons)
                 measuredQubit.append(numPhotons)
@@ -67,21 +66,22 @@ def bob():
         measuredQubits.append(measuredQubit)
         aliceQubits.append(aliceQubit)
     
+    # Filter out relevant bell measurements namely ones which satisfy valid detector patterns
     for index, qubits in enumerate(measuredQubits):
         if qubits in zRotation:
             zIndices.append(index)
         elif qubits in identityRotation:
             iIndices.append(index)
-    
+    # Print out the data for the measurements with 
     for index in zIndices:
         left = rawOutputs[index][4].strip()
         right = rawOutputs[index][6].strip()
         amp = rawOutputs[index][amplitudeIndex].strip().split()[0]
         amp = float(amp) * normalisationFactor
         if left == '0' and right == '1':
-            print(f"Apply Z |0> : {amp} [{index}]")
+            print(f"Applying Z |0> : {amp} [{index}]")
         elif left == '1' and right == '0':
-            print(f"Apply Z  |1> : {amp} [{index}]")
+            print(f"Applying Z  |1> : {amp * -1} [{index}]")
     
     for index in iIndices:
         left = rawOutputs[index][4].strip()

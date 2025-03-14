@@ -27,7 +27,7 @@ def alice():
     teleportation.add_photons(1, 1)
     
     # Apply a random unitary operation on |0> state, this will be our teleported state
-    #teleportation.add_gate([0, 1], getRandomUnitaryGate(inverse=False), "U")
+    teleportation.add_gate([0, 1], getRandomUnitaryGate(inverse=False), "U")
     # print(SEPERATOR)
     print("(Teleported state)")
     qmap =[[0], [1]]
@@ -123,10 +123,10 @@ def getMeasureGateV2():
 Function which returns a quantum device which conducts a bell measurement
 '''
 def getMeasureGate():
-    bellMeasurement = soqcs.qodev(2,4)
-    
-    bellMeasurement.beamsplitter(0, 3, 180*acos(1.0/sqrt(2.0))/pi, 0)
+    bellMeasurement = soqcs.qodev(4,4)
+    #bellMeasurement.rewire(1, 2)
     bellMeasurement.beamsplitter(1, 2, 180*acos(1.0/sqrt(2.0))/pi, 0)
+    bellMeasurement.beamsplitter(0, 3, 180*acos(1.0/sqrt(2.0))/pi, 0)
   
     
     return bellMeasurement   
