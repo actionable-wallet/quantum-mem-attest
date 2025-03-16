@@ -53,8 +53,6 @@ def alice():
     chlist = [0, 1, 3, 5]
     teleportation.add_gate(chlist, bellMeasurement, "measure") 
     
-    #teleportation.add_gate([4, 6], getRandomUnitaryGate(inverse=True), 'Ψ')
-    #teleportation.add_gate([4, 6], pauliGate('z'), 'Z')
     teleportation.detector(0)
     teleportation.detector(1)
     teleportation.detector(3)
