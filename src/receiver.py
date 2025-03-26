@@ -1,6 +1,5 @@
 import subprocess
-import pprint
-import re
+import soqcs, re, sys
 from math import sqrt
 
 
@@ -18,6 +17,18 @@ receiverChannels = [4, 6]
 zRotation = [[1, 0, 1, 0], [0, 1, 0, 1]]
 identityRotation = [[1, 1, 0, 0], [0, 0, 1, 1]]
 
+# Not sure why soqcs uses this convention, usually |10>> = |0> and |01>> = |1>
+ZERO_DUAL_RAIL = [0, 1]
+ONE_DUAL_RAIL = [1, 0]
+
+VALID_THETA = 0
+
+def getRandomUnitaryGate(theta):
+    state = soqcs.qodev(1, 2)
+    # Keep real and ensure we assign it once only
+    state.beamsplitter(0, 1, -theta, 0.0)
+       
+    return state
 
 
 def parseOutput(output):
@@ -32,6 +43,30 @@ def parseOutput(output):
 def sender():
     return 0
     
+def verify(temp):
+    sim=soqcs.simulator(mem=20000)
+    # Note changing from (9, 11) did not change anything
+    verify = soqcs.qodev(1, 2)
+    
+    global VALID_THETA
+    print(VALID_THETA)
+    verify.beamsplitter(0, 1, VALID_THETA, 0.0)
+
+    inputst = soqcs.state(2, 1)
+    # Initialize input state
+    # Add ket #1: |2,0>
+    term=[[0,1], [0, 1]] # Occupations
+    inputst.add_term(temp[2][1], term ,verify.circuit())
+    # Add ket #2: |0,1>
+    term=[[0,1], [1, 0]] # Occupations
+    inputst.add_term(temp[3][1], term, verify.circuit())
+ 
+    outputst=sim.run_st(inputst, verify.circuit())
+
+    outputst=verify.apply_condition(outputst)
+    qmap = [[0], [1]]
+    outputst = outputst.encode(qmap, verify.circuit())
+    outputst.prnt_state(column=1)
     
 
 def receiver():
@@ -47,6 +82,10 @@ def receiver():
     for i, outputStrings in enumerate(circuitState):
         if i == 1 or i == 2:
             print(outputStrings)
+            match = re.search(r"= [0-9]+.*", outputStrings[1])
+            global VALID_THETA
+            if match:
+                VALID_THETA = float(match.group().split()[1])
         if i < 2:
             continue
         measuredQubit = []
@@ -81,6 +120,8 @@ def receiver():
     
     # Filter out outputs whereby there was a relevant bell measurement
     # Namely we filter out the channels regarding Bob's dual rail encoded qubit
+    
+    temp = []
     for index in zIndices:
         left = circuitStates[index][4].strip()
         right = circuitStates[index][6].strip()
@@ -89,9 +130,13 @@ def receiver():
         
         # Place within simulator here!
         if left == '0' and right == '1':
-            print(f"Applying Z |0> : {amp} [{index}]")
+            # print(f"Applying Z |0> : {amp} [{index}]")
+            temp.append([[0, 1], amp])
         elif left == '1' and right == '0':
-            print(f"Applying Z  |1> : {amp * -1} [{index}]")
+            # print(f"Applying Z  |1> : {amp * -1} [{index}]")
+            temp.append([[1, 0], amp * -1])
+    verify(temp)
+        
     
     for index in iIndices:
         left = circuitStates[index][4].strip()
@@ -99,8 +144,10 @@ def receiver():
         amp = circuitStates[index][AMPLITUDE_INDEX].strip().split()[0]
         amp = float(amp) * NORMALISATION_FACTOR
         if left == '0' and right == '1':
-            print(f"Apply I  |0> : {amp} [{index}]")
+            # print(f"Apply I  |0> : {amp} [{index}]")
+            temp.append([[0, 1], amp])
         elif left == '1' and right == '0':
-            print(f"Apply I  |1> : {amp} [{index}]")
-
+            # print(f"Apply I  |1> : {amp} [{index}]")
+            temp.append([[1, 0], amp])
+    # n = len(circuitStates)
 receiver()

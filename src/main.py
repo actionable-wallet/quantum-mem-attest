@@ -1,22 +1,17 @@
 import random
+from tkinter import font
 import soqcs, sys
 import subprocess
 from pauli import pauliGate
 from random import randrange
 from math import sqrt, acos, pi
 
+VALID_ATTEST_RESPONSE = 0
+
 SEPERATOR = "==============================================================================="
 
 randomTheta = 0
-
-'''
-NOTE: Alice is the sender, Bob is the receiver of the teleported qubit.
-alice() represents all of Alice's actions during the teleportation process. To be more specific,
-the function stops at the point where Alice measures her two qubits, namely the TELEPORTED qubit and her HALF of the ENTANGLED qubit.
-It is at this point whereby she sends two classical bits of information to notify Bob of what transformation he needs to induce on his
-half of the ENTANGLED qubit.
-'''
-def alice():
+def not_abstract_alice():
     sim=soqcs.simulator(mem=20000)
    
     # Note changing from (9, 11) did not change anything
@@ -41,6 +36,71 @@ def alice():
     teleportation.add_photons(0, 5)
     teleportation.add_photons(1, 6)
     
+    # entangledState = getEntanglementGenerator()
+    
+    
+    teleportation.beamsplitter(2, 3, 45.0, 0)
+    teleportation.phase_shifter(2, 90.0)
+    teleportation.beamsplitter(2, 4, 180*acos(sqrt(2.0)/sqrt(3.0))/pi, 0)
+    teleportation.beamsplitter(3, 4, 45.0, 0)
+    teleportation.beamsplitter(5, 6, 180*acos(1.0/sqrt(3.0))/pi, 0)
+    teleportation.beamsplitter(2, 6, 45.0, 0)
+    
+    # chlist = [2, 3, 4, 5, 6]
+    # teleportation.add_gate(chlist, entangledState, "Entangle")
+    teleportation.detector(2)
+    
+    # bellMeasurement = getMeasureGate()
+   
+    
+    # chlist = [0, 1, 3, 5]
+    # teleportation.add_gate(chlist, bellMeasurement, "measure") 
+    
+    teleportation.beamsplitter(1, 3, 180*acos(1.0/sqrt(2.0))/pi, 0)
+    teleportation.beamsplitter(0, 5, 180*acos(1.0/sqrt(2.0))/pi, 0)
+  
+    
+    teleportation.detector(0)
+    teleportation.detector(1)
+    teleportation.detector(3)
+    teleportation.detector(5)
+    
+    teleportation.show(sizexy=50, slin=1)
+    outcome = sim.run_st(teleportation.input(), teleportation.circuit())
+    outcome.prnt_state(column=1)
+'''
+NOTE: Alice is the sender, Bob is the receiver of the teleported qubit.
+alice() represents all of Alice's actions during the teleportation process. To be more specific,
+the function stops at the point where Alice measures her two qubits, namely the TELEPORTED qubit and her HALF of the ENTANGLED qubit.
+It is at this point whereby she sends two classical bits of information to notify Bob of what transformation he needs to induce on his
+half of the ENTANGLED qubit.
+'''
+def alice():
+    sim=soqcs.simulator(mem=20000)
+   
+    # Note changing from (9, 11) did not change anything
+    teleportation = soqcs.qodev(5, 7)
+    
+    # Generate the |0> state
+    teleportation.add_photons(0, 0)
+    teleportation.add_photons(1, 1)
+    
+    # Apply a random unitary operation on |0> state, this will be our teleported state
+    teleportation.add_gate([0, 1], getRandomUnitaryGate(inverse=False), "U")
+    # print(SEPERATOR)
+    global VALID_ATTEST_RESPONSE
+    print(f"(Teleported state) with VALID theta = {VALID_ATTEST_RESPONSE}")
+    qmap =[[0], [1]]
+    printState(teleportation, qmap)
+    # Ancillary mode
+    teleportation.add_photons(1, 2)
+    
+    # Channels which will encode our entanglement circuit
+    teleportation.add_photons(1, 3)
+    teleportation.add_photons(1, 4)
+    teleportation.add_photons(0, 5)
+    teleportation.add_photons(1, 6)
+    
     entangledState = getEntanglementGenerator()
     
     chlist = [2, 3, 4, 5, 6]
@@ -49,7 +109,6 @@ def alice():
     
     bellMeasurement = getMeasureGate()
    
-    
     chlist = [0, 1, 3, 5]
     teleportation.add_gate(chlist, bellMeasurement, "measure") 
     
@@ -57,6 +116,8 @@ def alice():
     teleportation.detector(1)
     teleportation.detector(3)
     teleportation.detector(5)
+    # outcome = sim.run(teleportation, method=0)
+
     outcome = sim.run_st(teleportation.input(), teleportation.circuit())
     outcome.prnt_state(column=1)
 
@@ -74,7 +135,9 @@ def getRandomUnitaryGate(inverse):
     # Keep real and ensure we assign it once only
     global randomTheta
     if not inverse:
-        randomTheta = randrange(0, 90)
+        randomTheta = randrange(0, 180)
+        global VALID_ATTEST_RESPONSE
+        VALID_ATTEST_RESPONSE = randomTheta
         state.beamsplitter(0, 1, randomTheta, 0.0)
     else:
         state.beamsplitter(0, 1, -randomTheta, 0.0)
@@ -126,7 +189,6 @@ def getMeasureGate():
     bellMeasurement.beamsplitter(1, 2, 180*acos(1.0/sqrt(2.0))/pi, 0)
     bellMeasurement.beamsplitter(0, 3, 180*acos(1.0/sqrt(2.0))/pi, 0)
   
-    
     return bellMeasurement   
 '''
 Using: https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.3.043031.
@@ -152,7 +214,6 @@ def getEntanglementGenerator():
     entangle_v2.beamsplitter(0, 4, 45.0, 0)
     
     # entangle_v2.detector(0)
-    
     return entangle_v2
 '''
 Using: https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.3.043031.
