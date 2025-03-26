@@ -54,11 +54,11 @@ def verify(temp):
 
     inputst = soqcs.state(2, 1)
     # Initialize input state
-    # Add ket #1: |2,0>
-    term=[[0,1], [0, 1]] # Occupations
+    # Adding superposition state
+    term=[[0,1], [0, 1]] # Occupations at channel 0,1
     inputst.add_term(temp[2][1], term ,verify.circuit())
-    # Add ket #2: |0,1>
-    term=[[0,1], [1, 0]] # Occupations
+   
+    term=[[0,1], [1, 0]] # Occupations at channels 0,1
     inputst.add_term(temp[3][1], term, verify.circuit())
  
     outputst=sim.run_st(inputst, verify.circuit())
