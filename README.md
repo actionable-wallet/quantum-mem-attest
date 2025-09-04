@@ -34,16 +34,20 @@ The system is built on the `soqcs` library, which simulates quantum linear optic
 
 The memory attestation protocol follows these steps:
 
-1. **Challenge Generation**: Verifier uniformly samples a challenge $c \leftarrow \{0, 1\}$
+Suppose the verifier $V$ and prover $P$ have shared a maximally entangled quantum state. The threat picture dictates that their is a highly likely threat to remote devices. Therefore, $V$ needs to check with $P$ whether a particular device is in a compromised state.
+
+1. **Challenge Generation**: Verifier uniformly samples a challenge $c \leftarrow \{0, 1\}^*$. An example of a potential challenge is forcing the device to do Horner's rule or perhaps random sampling of memory.
 
 2. **Memory State Processing**: 
-   - Prover has initial memory state $s_0$
+   - Prover has initial memory state $s_0$ which it needs to prove has not been compromised
    - Prover calculates $\mathrm{Attest}(s_0, c) = \theta'$
    - Prover prepares quantum state $\sin\left(\frac{\theta'}{2}\right)\ket{0} + \cos\left(\frac{\theta'}{2}\right)\ket{1}$ for teleportation
 
-3. **Quantum Teleportation**: State is teleported using the implemented quantum circuit
+3. **Quantum Teleportation**: The state is teleported using the implemented quantum circuit. (Where the maximally entangled state is required)
 
-4. **Verification**: Verifier measures the received state to validate memory integrity
+4. **Verification**: Verifier measures the received state to validate memory integrity. It obtains the teleported state and rotates it via its own calculation of $\mathrm{Attest}(s, c) = \theta.$ The verifier then checks whether after the rotation their qubit is left in the $\ket{1}$ state. The verifier can also check the provers output $\mathrm{Attest}(s_0, c) = \theta'$ equals $\mathrm{Attest}(s, c) = \theta.$
+
+*NOTE: For testing purposes the Attest function is abstracted.* 
 
 ## Quantum Teleportation Overview
 
@@ -54,19 +58,19 @@ Quantum teleportation enables "cutting and pasting" an arbitrary quantum state f
 
 ### How It Works
 
-Consider two parties, Proton (sender) and Neutron (receiver):
+Consider two parties, Alice (sender) and Bob (receiver):
 
-1. **Entanglement Generation**: They share a maximally entangled Bell state: $\frac{1}{\sqrt{2}}\left(\ket{0_P0_N} + \ket{1_P1_N}\right)$
+1. **Entanglement Generation**: They share a maximally entangled Bell state: $\frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
 
-2. **State Preparation**: Proton prepares the quantum state $\psi_P$ to teleport
+2. **State Preparation**: Alice prepares the quantum state $\psi_P$ to teleport
 
-3. **Combined System**: The total system becomes $\psi_P \otimes \frac{1}{\sqrt{2}}\left(\ket{0_P0_N} + \ket{1_P1_N}\right)$
+3. **Combined System**: The total system becomes $\psi_P \otimes \frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
 
-4. **Bell Measurement**: Proton performs a Bell state measurement on their qubits
+4. **Bell Measurement**: Alice performs a Bell state measurement on their qubits
 
-5. **Classical Communication**: Measurement results are sent to Neutron
+5. **Classical Communication**: Measurement results are sent to Bob
 
-6. **State Recovery**: Neutron applies appropriate operations to recover the original state
+6. **State Recovery**: Bob applies appropriate operations to recover the original state
 
 
 ## Getting Started
@@ -101,31 +105,18 @@ pip install git+https://github.com/SOQCSAdmin/SOQCS
 
 ### Running the System
 
-The system consists of two main components:
+Simply run `main.py` a pseudo-random $\theta$ will be chosen which abstracts the $\textt{Attest}$ function.
 
-**Start the Verifier (Receiver)**:
-```bash
-python3 receiver.py
-```
-
-**Run the Prover (Sender)**:
 ```bash
 python3 main.py
 ```
 
 ## Usage
 
-### Basic Operation
-
-1. Launch the verifier first to establish the receiving end
-2. Run the prover to initiate the memory attestation protocol
-3. The system will automatically perform quantum teleportation and verify memory state
-4. Results will be displayed showing attestation success/failure
-
 ### Configuration Options
 
 Modify the following parameters in the source files:
-- Memory state initialization in `main.py`
+- Memory state initialisation in `main.py`
 - Challenge generation parameters in `receiver.py`
 - Quantum circuit parameters for different attestation requirements
 
