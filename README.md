@@ -1,55 +1,134 @@
 # Quantum Methods for Memory Attestation
 
-The following implementation aims to simulate quantum teleportation in order to deploy a memory attestation protocol using quantum methods. The methods used ensure that a remote device's memory is in a secure state. A key aspect of the scheme is to authenticate the prover without the requirement for trusted hardware. In the real-world relying on trusted hardware presents challenges within the supply chain and insider threats.
+A quantum teleportation-based implementation for secure remote memory attestation without trusted hardware dependencies.
 
-The current scheme utilises the `soqcs` library which simulates a quantum linear optics circuit. Using the library, we have implemented a variety of quantum gates, namely the `Pauli [X|Y|Z]` and rotation gates. 
+## Overview
 
-Since we have simulated a quantum teleportation scheme by extension we have implemented a non-deterministic quantum entanglement generator with a success of generating a maximally entangled Bell State with probability $\frac{1}{9}$. We have also implemented a Bell State analyser (Bell state measurer) using linear optics.
+This project simulates quantum teleportation to implement a memory attestation protocol that verifies a remote device's memory state securely. The approach eliminates the need for trusted hardware, addressing supply chain vulnerabilities and insider threats commonly associated with traditional attestation methods.
 
+**Quantum Lock's Novelty**: Uses quantum methods to authenticate a prover's memory state remotely, leveraging the fundamental properties of quantum mechanics for security guarantees.
 
+## Implementation Details
+
+The system is built on the `soqcs` library, which simulates quantum linear optics circuits. Our implementation includes:
+
+- **Quantum Gates**: Pauli gates (X, Y, Z) and rotation gates
+- **Quantum Teleportation**: Complete teleportation protocol simulation
+- **Bell State Generation**: Non-deterministic entanglement generator with 1/9 success probability for maximally entangled Bell states
+- **Bell State Analysis**: Linear optics-based Bell state measurement system
 
 ## Table of Contents
-- [Protocol](#protocol)
-- [Features](#features)
+- [Protocol](#protocol)  
+- [Quantum Teleportation Overview](#quantum-teleportation-overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Building](#building)
-  - [Running](#running)
+  - [Installation](#installation)
+  - [Running the System](#running-the-system)
 - [Usage](#usage)
+- [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
 ## Protocol
 
-1. Verifier and Prover begin a game brrrrr. Verifier uniformly samples a challenge $c \leftarrow \{0, 1\}^*$. 
+The memory attestation protocol follows these steps:
 
-2. Prover has the memory state as $s_0$ and calculates Attest $(s_0, c) = \theta'$. Prover prepares the state $\sin(\frac{\theta'}{2})\ket{0} + \cos(\frac{\theta'}{2})\ket{1}$
-to teleport.
-3. 
+Suppose the verifier $V$ and prover $P$ have shared a maximally entangled quantum state. The threat picture dictates that their is a highly likely threat to remote devices. Therefore, $V$ needs to check with $P$ whether a particular device is in a compromised state.
 
-## Features
+1. **Challenge Generation**: Verifier uniformly samples a challenge $c \leftarrow \{0, 1\}^*$. An example of a potential challenge is forcing the device to do Horner's rule or perhaps random sampling of memory.
 
-Using the `soqcs` library we simulate quantum teleportation using a linear optics approach. Quantum teleportation is the process of "cutting and pasting" an arbitary quantum state from a sender to a receiver from a distance. 
+2. **Memory State Processing**: 
+   - Prover has initial memory state $s_0$ which it needs to prove has not been compromised
+   - Prover calculates $\mathrm{Attest}(s_0, c) = \theta'$
+   - Prover prepares quantum state $\sin\left(\frac{\theta'}{2}\right)\ket{0} + \cos\left(\frac{\theta'}{2}\right)\ket{1}$ for teleportation
 
-![alt text](image.png)
-> Example circuit
+3. **Quantum Teleportation**: The state is teleported using the implemented quantum circuit. (Where the maximally entangled state is required)
 
-### Quantum Teleportation Crash Course
+4. **Verification**: Verifier measures the received state to validate memory integrity. It obtains the teleported state and rotates it via its own calculation of $\mathrm{Attest}(s, c) = \theta.$ The verifier then checks whether after the rotation their qubit is left in the $\ket{1}$ state. The verifier can also check the provers output $\mathrm{Attest}(s_0, c) = \theta'$ equals $\mathrm{Attest}(s, c) = \theta.$
 
-Suppose we have a friend Proton who wants to quantumally teleport an arbitary quantum state to another friend Neutron who lives $\frac{1}{365}$ light years away. Proton and Neutron first generate a maximally entangled Bell State. In our example, we will use $\frac{1}{\sqrt{2}}(\ket{0_P0_N} + \ket{1_P1_N}).$ Proton and Neutron a half of the entangled state denoted by the subscript $P$ and $N$. Proton prepares the quantum state $\psi_P$ which he wants to teleport to Neutron. Now the entire system can be denoted as $\psi_P \otimes\frac{1}{\sqrt{2}}(\ket{0_P0_N} + \ket{1_P1_N}.$
+*NOTE: For testing purposes the Attest function is abstracted.* 
+
+## Quantum Teleportation Overview
+
+Quantum teleportation enables "cutting and pasting" an arbitrary quantum state from sender to receiver across any distance.
+
+![Quantum Teleportation Circuit](image.png)
+*Example quantum teleportation circuit*
+
+### How It Works
+
+Consider two parties, Alice (sender) and Bob (receiver):
+
+1. **Entanglement Generation**: They share a maximally entangled Bell state: $\frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
+
+2. **State Preparation**: Alice prepares the quantum state $\psi_P$ to teleport
+
+3. **Combined System**: The total system becomes $\psi_P \otimes \frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
+
+4. **Bell Measurement**: Alice performs a Bell state measurement on their qubits
+
+5. **Classical Communication**: Measurement results are sent to Bob
+
+6. **State Recovery**: Bob applies appropriate operations to recover the original state
+
 
 ## Getting Started
 
-The following section will show what libraries are required in order to run the work. We personally used a virtual environment `venv`. We have two files, `main.py` and `receiver.py`. Within the context of the memory attestation protocol, `main.py` represents the prover and `receiver.py` is the verifier.
-
 ### Prerequisites
 
-- `soqcs`
-- 
-
-### Building
+Ensure you have Python 3.7+ and the following dependencies:
 
 ```bash
-    python3 receiver.py
+sudo apt install libeigen3-dev
+pip install git+https://github.com/SOQCSAdmin/SOQCS
 ```
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/actionable-wallet/quantum-mem-attest
+   cd quantum-memory-attestation
+   ```
+
+2. **Set up virtual environment** (recommended):
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+<!-- 3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ``` -->
+
+### Running the System
+
+Simply run `main.py` a pseudo-random $\theta$ will be chosen which abstracts the $\textt{Attest}$ function.
+
+```bash
+python3 main.py
+```
+
+## Usage
+
+### Configuration Options
+
+Modify the following parameters in the source files:
+- Memory state initialisation in `main.py`
+- Challenge generation parameters in `receiver.py`
+- Quantum circuit parameters for different attestation requirements
+
+## Project Structure
+
+```
+quantum-memory-attestation/
+├── main.py          # Prover implementation
+├── receiver.py      # Verifier implementation  
+TODO: Validate
+```
+
+- **`main.py`**: Implements the prover side of the protocol, handling memory state processing and quantum state preparation
+- **`receiver.py`**: Implements the verifier side, managing challenge generation and state verification
+
