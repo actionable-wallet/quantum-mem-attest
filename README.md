@@ -17,6 +17,8 @@ The system is built on the `soqcs` library, which simulates quantum linear optic
 - **Bell State Generation**: Non-deterministic entanglement generator with 1/9 success probability for maximally entangled Bell states
 - **Bell State Analysis**: Linear optics-based Bell state measurement system
 
+*Caveat: Only two out of the four Bell States can be distinguished and hence measured under the linear optics paradigm*
+
 ## Table of Contents
 - [Protocol](#protocol)  
 - [Quantum Teleportation Overview](#quantum-teleportation-overview)
@@ -26,7 +28,6 @@ The system is built on the `soqcs` library, which simulates quantum linear optic
   - [Running the System](#running-the-system)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
-- [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
@@ -34,7 +35,7 @@ The system is built on the `soqcs` library, which simulates quantum linear optic
 
 The memory attestation protocol follows these steps:
 
-Suppose the verifier $V$ and prover $P$ have shared a maximally entangled quantum state. The threat picture dictates that their is a highly likely threat to remote devices. Therefore, $V$ needs to check with $P$ whether a particular device is in a compromised state.
+Suppose the verifier $V$ and prover $P$ have shared a maximally entangled quantum state. $V$ has noticed the threat picture suggesting that there is a highly likely threat to remote devices. Therefore, $V$ needs to check with $P$ whether a particular device is in a compromised state.
 
 1. **Challenge Generation**: Verifier uniformly samples a challenge $c \leftarrow \{0, 1\}^*$. An example of a potential challenge is forcing the device to do Horner's rule or perhaps random sampling of memory.
 
@@ -58,19 +59,19 @@ Quantum teleportation enables "cutting and pasting" an arbitrary quantum state f
 
 ### How It Works
 
-Consider two parties, Alice (sender) and Bob (receiver):
+Consider two parties, the Peggy and Victor:
 
-1. **Entanglement Generation**: They share a maximally entangled Bell state: $\frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
+1. **Entanglement Generation**: They share a maximally entangled Bell state: $\frac{1}{\sqrt{2}}\left(\ket{0_P0_V} + \ket{1_P1_V}\right)$
 
-2. **State Preparation**: Alice prepares the quantum state $\psi_P$ to teleport
+2. **State Preparation**: Peggy prepares the quantum state $\psi_P$ to teleport. Within the context of our protocol this state is dependent on the output of $\mathrm{Attest}$
 
-3. **Combined System**: The total system becomes $\psi_P \otimes \frac{1}{\sqrt{2}}\left(\ket{0_A0_B} + \ket{1_A1_B}\right)$
+3. **Combined System**: The total system becomes $\psi_P \otimes \frac{1}{\sqrt{2}}\left(\ket{0_P0_V} + \ket{1_P1_V}\right)$
 
-4. **Bell Measurement**: Alice performs a Bell state measurement on their qubits
+4. **Bell Measurement**: Peggy performs a Bell state measurement on their qubits
 
-5. **Classical Communication**: Measurement results are sent to Bob
+5. **Classical Communication**: Measurement results are sent to Victor
 
-6. **State Recovery**: Bob applies appropriate operations to recover the original state
+6. **State Recovery**: Victor applies appropriate operations to recover the original state
 
 
 ## Getting Started
@@ -89,7 +90,7 @@ pip install git+https://github.com/SOQCSAdmin/SOQCS
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/actionable-wallet/quantum-mem-attest
-   cd quantum-memory-attestation
+   cd quantum-mem-attest
    ```
 
 2. **Set up virtual environment** (recommended):
@@ -105,10 +106,10 @@ pip install git+https://github.com/SOQCSAdmin/SOQCS
 
 ### Running the System
 
-Simply run `main.py` a pseudo-random $\theta$ will be chosen which abstracts the $\textt{Attest}$ function.
+Execute `receiver.py` where a pseudo-random $\theta$ will be chosen which abstracts the $\mathrm{Attest}$ function.
 
 ```bash
-python3 main.py
+python3 receiver.py
 ```
 
 ## Usage
@@ -123,12 +124,12 @@ Modify the following parameters in the source files:
 ## Project Structure
 
 ```
-quantum-memory-attestation/
-├── main.py          # Prover implementation
-├── receiver.py      # Verifier implementation  
-TODO: Validate
+quantum-mem-attest/src
+├── main.py          # Prover 
+└── receiver.py      # Verifier
 ```
 
 - **`main.py`**: Implements the prover side of the protocol, handling memory state processing and quantum state preparation
 - **`receiver.py`**: Implements the verifier side, managing challenge generation and state verification
+
 
